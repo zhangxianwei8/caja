@@ -364,46 +364,6 @@ notebook_popup_menu_new_tab_cb (GtkMenuItem *menuitem,
 }
 
 static void
-path_bar_path_set_callback (GtkWidget *widget,
-                            GFile *location,
-                            CajaNavigationWindowPane *pane)
-{
-    GList *children, *l;
-    GtkWidget *child;
-
-    children = gtk_container_get_children (GTK_CONTAINER (widget));
-
-    for (l = children; l != NULL; l = l->next)
-    {
-        child = GTK_WIDGET (l->data);
-
-        if (!GTK_IS_TOGGLE_BUTTON (child))
-        {
-            continue;
-        }
-
-        if (!g_signal_handler_find (child,
-                                    G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA,
-                                    0, 0, NULL,
-                                    path_bar_button_pressed_callback,
-                                    pane))
-        {
-            g_signal_connect (child, "button-press-event",
-                              G_CALLBACK (path_bar_button_pressed_callback),
-                              pane);
-            g_signal_connect (child, "button-release-event",
-                              G_CALLBACK (path_bar_button_released_callback),
-                              pane);
-            g_signal_connect (child, "drag-begin",
-                              G_CALLBACK (path_bar_button_drag_begin_callback),
-                              pane);
-        }
-    }
-
-    g_list_free (children);
-}
-
-static void
 notebook_popup_menu_move_left_cb (GtkMenuItem *menuitem,
                                   gpointer user_data)
 {
@@ -766,8 +726,6 @@ caja_navigation_window_pane_setup (CajaNavigationWindowPane *pane)
 
     g_signal_connect_object (pane->path_bar, "path_clicked",
                              G_CALLBACK (path_bar_location_changed_callback), pane, 0);
-    g_signal_connect_object (pane->path_bar, "path_set",
-                             G_CALLBACK (path_bar_path_set_callback), pane, 0);
 
     gtk_box_pack_start (GTK_BOX (hbox),
                         pane->path_bar,
