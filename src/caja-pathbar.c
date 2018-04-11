@@ -1723,6 +1723,15 @@ button_data_file_changed (CajaFile *file,
         return;
     }
 
+    /*FIXME: doublecclicking a mount on the desktop twice can return
+     *NULL for path_bar->current_path so just return on it-don't spam logs
+     *
+     *Note that this can still leave other caja windows with nonresponsive right-click
+     *in the pathbar until the current directory is changed and this is re-run
+     */
+    if (path_bar->current_path == NULL)
+        return;
+
     g_return_if_fail (path_bar->current_path != NULL);
     g_return_if_fail (path_bar->current_button_data != NULL);
 
@@ -2055,15 +2064,15 @@ caja_path_bar_update_path (CajaPathBar *path_bar,
         gtk_container_add (GTK_CONTAINER (path_bar), button);
     }
 
-    if (path_bar->current_path != NULL)
-    {
-        g_object_unref (path_bar->current_path);
-    }
+    if(file_path != NULL)
+        path_bar->current_path = g_object_ref (file_path);
 
-    path_bar->current_path = g_object_ref (file_path);
     path_bar->current_button_data = current_button_data;
 
-    g_signal_emit (path_bar, path_bar_signals [PATH_SET], 0, file_path);
+    if (path_bar->current_path != NULL){
+        g_signal_emit (path_bar, path_bar_signals [PATH_SET], 0, file_path);
+        g_object_unref (path_bar->current_path);
+    }
 
     return result;
 }
